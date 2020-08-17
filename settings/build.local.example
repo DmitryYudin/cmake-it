@@ -1,0 +1,31 @@
+#
+# This is an example. Rename it to 'build.local' and set proper values.
+#
+
+#
+# Windows toolchains
+#
+case ${OS-:} in *_NT)
+    # https://developer.android.com/ndk/downloads
+    DIR_NDK=C:/work/devscripts/bin/app/android/ndk-r21d
+
+    # https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-posix/sjlj/
+    DIR_GCC=C:/work/devscripts/bin/app/mingw
+
+    # https://releases.llvm.org/download.html
+    DIR_LLVM=C:/work/devscripts/bin/app/llvm/10.0.0
+    DIR_LLVM_ARM=C:/work/devscripts/bin/app/llvm/9.0.0
+
+    # ARM toolchains hosted on Windows:
+    #   https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads
+    # There are two variants:
+    # aarch64:
+    #   https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-mingw-w64-i686-aarch64-none-linux-gnu.tar.xz
+    PREF_GCC_ARM64_LINUX=aarch64-none-linux-gnu
+    DIR_GCC_ARM64_LINUX=C:/work/devscripts/bin/app/mingw-$PREF_GCC_ARM64_LINUX
+    # arm-gnueabihf:
+    #   https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-mingw-w64-i686-arm-none-linux-gnueabihf.tar.xz
+    PREF_GCC_ARM32_LINUX=arm-none-linux-gnueabihf
+    DIR_GCC_ARM32_LINUX=C:/work/devscripts/bin/app/mingw-$PREF_GCC_ARM32_LINUX
+    ;;
+esac
