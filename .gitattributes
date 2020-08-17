@@ -1,0 +1,3 @@
+* text=auto
+*.sh text eol=lf
+*.local.example eol=elf
