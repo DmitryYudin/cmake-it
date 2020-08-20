@@ -67,6 +67,7 @@ EOT
 entrypoint()
 {
     local rebuild=false print_only=false demangle_only=false target= msvc_open=0 msvc_build=1
+    local start_sec=$SECONDS
 
     [[ $# == 0 ]] && usage && return 1
 
@@ -136,7 +137,9 @@ entrypoint()
     case $target in *-msvc) script="$script $msvc_open $msvc_build";; esac
     $script $bits "$dirOut" $BUILD_FLAGS
 
-    echo "Successfully built [$dirOut]"
+    local timestamp
+    timestampStr $((SECONDS - start_sec)); timestamp=$REPLY
+    echo "$timestamp Successfully built [$dirOut]"
 }
 
 index_to_target()
@@ -369,6 +372,16 @@ error_exit()
 {
     echo "error: $*" >&2
     exit 1
+}
+
+timestampStr()
+{
+    local dt=$1; shift
+    local hr=$(( dt/60/60 )) min=$(( (dt/60) % 60 )) sec=$(( dt % 60 ))
+    [[ ${#min} == 1 ]] && min=0$min
+    [[ ${#sec} == 1 ]] && sec=0$sec
+    [[ ${#hr}  == 1 ]] && hr=0$hr
+    REPLY="$hr:$min:$sec"
 }
 
 update_path()
