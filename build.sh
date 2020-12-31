@@ -4,6 +4,9 @@
 #
 set -eu
 
+dirScript=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
+
+DIR_BUILD_LOCAL=$dirScript
 DIR_CMAKELIST=.
 BUILD_FLAGS=
 
@@ -25,6 +28,7 @@ usage()
         -r|--rebuild       Cleanup output directory before build
         -a|--app <name>    Only build selected application
         -f|--file <path>   Path to 'CMakeList.txt' (default: .)
+        --local <path>     'build.local' file directory (default: <cmake-it>)
         -Dkey=val          CMake flags
         index              Target index
 
@@ -90,6 +94,7 @@ entrypoint()
                 nargs=1
             ;;
             -f|file)        DIR_CMAKELIST=$2;;
+            --local)        DIR_BUILD_LOCAL=$2;;
             -D*)            BUILD_FLAGS="$BUILD_FLAGS $1"; nargs=1;; # TODO: push back to $@
             *) error_exit "unrecognized option '$1'";;
         esac
@@ -119,17 +124,18 @@ entrypoint()
     esac
 
     if $print_only; then
-        case $target in *-msvc) dirOut="$dirOut/Release";; esac
+        case $target in *-msvc) dirOut=$dirOut/Release;; esac
         echo "$dirOut"
         return
     fi
 
     $demangle_only && echo "$target" && return
 
-    if [[ -f build.local ]]; then
-        . build.local
+    local prms_file=$DIR_BUILD_LOCAL/build.local
+    if [[ -f "$prms_file" ]]; then
+        . "$prms_file"
     else
-        error_exit "'build.local' not found"
+        error_exit "'$prms_file' not found"
     fi
 
     $rebuild && rm -rf "$dirOut"

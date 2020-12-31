@@ -6,6 +6,8 @@ set -eu
 
 dirScript=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
 
+DIR_RUN_LOCAL=$dirScript
+
 #
 # Runnig ARM32 build on ARM64 host machine: https://askubuntu.com/questions/1090351/can-i-run-an-arm32-bit-app-on-an-arm64bit-platform-which-is-running-ubuntu-16-04
 #   dpkg --add-architecture armhf
@@ -18,7 +20,7 @@ usage()
     local targets=$("$dirScript/build.sh" --target list)
 
     cat <<-EOT
-    Build and execute unit-test on a remote machine.
+    Run application on a remote machine.
 
     Usage:
         $(basename $0) --target <name> [opt]
@@ -28,6 +30,7 @@ usage()
         -h|--help          Print help
         -t|--target <name> Remote target
         -a|--app <name>    Test to run
+        --local <path>     'run.local' file directory (default: <cmake-it>)
 
 $targets
 
@@ -49,6 +52,7 @@ entrypoint()
             -h|--help)      usage && return;;
             -a|--app)       app_cmd=$2;;
             -t|--target)    target=$2;;
+            --local)        DIR_RUN_LOCAL=$2;;
             [0-9]|[0-9][0-9]|[0-9][0-9][0-9]|a|aa|b|bb)
                 target=$("$dirScript/build.sh" $1 --demangle)
                 nargs=1
@@ -60,7 +64,7 @@ entrypoint()
     [[ -z "$target" ]] && error_exit "'--target' option not set"
     [[ "$target" == list ]] && "$dirScript/build.sh" --target list && return
 
-    local prms_file=./run.local
+    local prms_file=$DIR_RUN_LOCAL/run.local
     if [[ -f "$prms_file" ]]; then
         . "$prms_file"
         [[ -n "${app_cmd:-}" ]] && app=$app_cmd # override script value
@@ -73,9 +77,10 @@ entrypoint()
     case $target in arm*)  remote=ssh;; esac
     case $target in *-ndk) remote=adb;; esac
 
-    "$dirScript/build.sh" --target $target --app "$app"
+#   Do not build here since we do not know 'build.local' file location
+#    "$dirScript/build.sh" --target $target --app "$app"
 
-    local dirBin=$("$dirScript/build.sh" --target $target --app "$app" --print)
+    local dirBin=$("$dirScript/build.sh" --target $target --app $app --print)
 
     echo "[$remote] $dirBin/$app"
     if [[ "$remote" == host ]]; then
