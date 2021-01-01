@@ -23,8 +23,8 @@ usage()
     Run application on a remote machine.
 
     Usage:
-        $(basename $0) --target <name> [opt]
-        $(basename $0) index
+        $(basename $0) --app test --target <name> [opt]
+        $(basename $0) --app test index
 
     Options:
         -h|--help          Print help
@@ -42,7 +42,7 @@ EOT
 
 entrypoint()
 {
-    local target= app_cmd=
+    local target= app=
 
     [[ $# == 0 ]] && usage && return 1
 
@@ -50,7 +50,7 @@ entrypoint()
         local nargs=2
         case $1 in
             -h|--help)      usage && return;;
-            -a|--app)       app_cmd=$2;;
+            -a|--app)       app=$2;;
             -t|--target)    target=$2;;
             --local)        DIR_RUN_LOCAL=$2;;
             [0-9]|[0-9][0-9]|[0-9][0-9][0-9]|a|aa|b|bb)
@@ -62,16 +62,15 @@ entrypoint()
         shift $nargs
     done
     [[ -z "$target" ]] && error_exit "'--target' option not set"
+    [[ -z "$app" ]] && error_exit "no application selected selected"
     [[ "$target" == list ]] && "$dirScript/build.sh" --target list && return
 
     local prms_file=$DIR_RUN_LOCAL/run.local
     if [[ -f "$prms_file" ]]; then
         . "$prms_file"
-        [[ -n "${app_cmd:-}" ]] && app=$app_cmd # override script value
     else
         error_exit "'$prms_file' not found"
     fi
-    [[ -z "${app:-}" ]] && error_exit "no app selected"
 
     local remote=host
     case $target in arm*)  remote=ssh;; esac
