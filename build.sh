@@ -31,7 +31,7 @@ usage()
         --local <path>     'build.local' file directory (default: <cmake-it>)
         -Dkey=val          CMake flags
         index              Target index
-
+        --                 End of options list, ignore the rest
 $targets
 
       MSVC    [  a]               <= Generate project for x64
@@ -76,7 +76,7 @@ entrypoint()
     [[ $# == 0 ]] && usage && return 1
 
     while [[ $# -gt 0 ]]; do
-        local nargs=2
+        local nargs=2 end_of_options=
         case $1 in
             -h|--help)      usage && return;;
             -r|--rebuild)   rebuild=true; nargs=1;;
@@ -96,9 +96,11 @@ entrypoint()
             -f|file)        DIR_CMAKELIST=$2;;
             --local)        DIR_BUILD_LOCAL=$2;;
             -D*)            BUILD_FLAGS="$BUILD_FLAGS $1"; nargs=1;; # TODO: push back to $@
+            --)             end_of_options=1; nargs=1;;
             *) error_exit "unrecognized option '$1'";;
         esac
         shift $nargs
+        [[ -n $end_of_options ]] && break
     done
     [[ -z "$target" ]] && usage && error_exit "'target' not set"
 

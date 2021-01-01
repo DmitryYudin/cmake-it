@@ -31,7 +31,7 @@ usage()
         -t|--target <name> Remote target
         -a|--app <name>    Test to run
         --local <path>     'run.local' file directory (default: <cmake-it>)
-
+        --                 End of options list, pass the rest to test app
 $targets
 
     Target credentials are read from the local shell script 'run-ut.local'.
@@ -47,7 +47,7 @@ entrypoint()
     [[ $# == 0 ]] && usage && return 1
 
     while [[ $# -gt 0 ]]; do
-        local nargs=2
+        local nargs=2 end_of_options=
         case $1 in
             -h|--help)      usage && return;;
             -a|--app)       app=$2;;
@@ -57,9 +57,11 @@ entrypoint()
                 target=$("$dirScript/build.sh" $1 --demangle)
                 nargs=1
             ;;
+            --)             end_of_options=1; nargs=1;;
             *) error_exit "unrecognized option '$1'";;
         esac
         shift $nargs
+        [[ -n $end_of_options ]] && break
     done
     [[ -z "$target" ]] && error_exit "'--target' option not set"
     [[ -z "$app" ]] && error_exit "no application selected selected"
@@ -83,7 +85,7 @@ entrypoint()
 
     echo "[$remote] $dirBin/$app"
     if [[ "$remote" == host ]]; then
-        "$dirBin/$app"
+        "$dirBin/$app" "$@"
     else
         . "$dirScript/remote_target.sh"
         TARGET_setTarget    $remote "$prms_file"
@@ -92,7 +94,7 @@ entrypoint()
         TARGET_push         "$dirBin/$app" "$remoteDirBin/$app"
         TARGET_exec         "
             chmod +x '$remoteDirBin/$app'
-            '$remoteDirBin/$app'
+            '$remoteDirBin/$app' "$@"
         "
     fi
 }
