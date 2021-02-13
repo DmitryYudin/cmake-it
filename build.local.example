@@ -16,6 +16,9 @@ case ${OS-:} in *_NT)
     DIR_LLVM=C:/work/devscripts/bin/app/llvm/10.0.0
     DIR_LLVM_ARM=C:/work/devscripts/bin/app/llvm/9.0.0
 
+    # https://software.intel.com/content/www/us/en/develop/articles/oneapi-standalone-components.html
+    DIR_INTEL='C:/Program Files (x86)/Intel/oneAPI/compiler/latest'
+
     # ARM toolchains hosted on Windows:
     #   https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads
     # There are two variants:

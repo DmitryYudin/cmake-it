@@ -54,17 +54,21 @@ list_targets()
               [  2] x64-cl        <= same as MSVC, but Ninja
               [  3] x64-gcc       <= DIR_GCC
               [  4] x64-clang     <= DIR_LLVM
-      Linux   [  5] arm64-gcc     <= DIR_GCC_ARM{64,32}_LINUX ['arm64-v8a', 'aarch64']
-              [  6] arm64-clang   <= DIR_GCC_ARM{64,32}_LINUX + DIR_LLVM_ARM
-      Android [  7] arm64-ndk     <= DIR_NDK
+              [  5] x64-icl       <= DIR_INTEL
+              [  6] x64-icx       <= DIR_INTEL
+      Linux   [  7] arm64-gcc     <= DIR_GCC_ARM{64,32}_LINUX ['arm64-v8a', 'aarch64']
+              [  8] arm64-clang   <= DIR_GCC_ARM{64,32}_LINUX + DIR_LLVM_ARM
+      Android [  9] arm64-ndk     <= DIR_NDK
 
       Host    [ 10] x32-msvc
               [ 20] x32-cl
               [ 30] x32-gcc
               [ 40] x32-clang
-      Linux   [ 50] arm32-gcc     <= ['armeabi-v7a + NEON + hard-float']
-              [ 60] arm32-clang
-      Android [ 70] arm32-ndk
+              [ 50] x32-icl
+              [ 60] x32-icx
+      Linux   [ 70] arm32-gcc     <= ['armeabi-v7a + NEON + hard-float']
+              [ 80] arm32-clang
+      Android [ 90] arm32-ndk
 EOT
 }
 
@@ -116,6 +120,10 @@ entrypoint()
         x32-gcc)        bits=32; script=build_gcc;              dirOut=.build/gcc-x$bits;;
         x64-clang)      bits=64; script=build_clang;            dirOut=.build/clang-x$bits;;
         x32-clang)      bits=32; script=build_clang;            dirOut=.build/clang-x$bits;;
+        x64-icl)        bits=64; script=build_icl;              dirOut=.build/icl-x$bits;;
+        x32-icl)        bits=32; script=build_icl;              dirOut=.build/icl-x$bits;;
+        x64-icx)        bits=64; script=build_icx;              dirOut=.build/icx-x$bits;;
+        x32-icx)        bits=32; script=build_icx;              dirOut=.build/icx-x$bits;;
         arm64-gcc)      bits=64; script=build_arm_linux_gcc;    dirOut=.build/arm${bits}_linux_gcc;;
         arm32-gcc)      bits=32; script=build_arm_linux_gcc;    dirOut=.build/arm${bits}_linux_gcc;;
         arm64-clang)    bits=64; script=build_arm_linux_clang;  dirOut=.build/arm${bits}_linux_clang;;
@@ -167,12 +175,16 @@ index_to_target()
         30) target=x32-gcc;;
          4) target=x64-clang;;
         40) target=x32-clang;;
-         5) target=arm64-gcc;;
-        50) target=arm32-gcc;;
-         6) target=arm64-clang;;
-        60) target=arm32-clang;;
-         7) target=arm64-ndk;;
-        70) target=arm32-ndk;;
+         5) target=x64-icl;;
+        50) target=x32-icl;;
+         6) target=x64-icx;;
+        60) target=x32-icx;;
+         7) target=arm64-gcc;;
+        70) target=arm32-gcc;;
+         8) target=arm64-clang;;
+        80) target=arm32-clang;;
+         9) target=arm64-ndk;;
+        90) target=arm32-ndk;;
     esac
     REPLY=$target
 }
@@ -222,6 +234,34 @@ EOT
     ./__run_cmake__.bat
     rm __run_cmake__.bat
 }
+
+build_intel()
+{
+    local compiler=$1; shift
+    local bits=$1; shift
+    local dirOut=$1; shift
+
+    update_path DIR_INTEL env
+
+    local envflags=
+    [[ $bits == 32 ]] && envflags=ia32 || envflags=intel64
+
+    mkdir -p $dirOut
+    cat <<-EOT> __run_cmake__.bat
+        @call vars.bat $envflags || exit /B 1
+        @call cmake -G Ninja -B $dirOut -S "$DIR_CMAKELIST" ^
+            -DCMAKE_BUILD_TYPE=release ^
+            -DCMAKE_C_COMPILER=$compiler ^
+            -DCMAKE_CXX_COMPILER=$compiler || ^
+        exit /B 1
+
+        @call cmake --build $dirOut ${APP:+ --target $APP} || exit /B 1
+EOT
+    ./__run_cmake__.bat
+    rm __run_cmake__.bat
+}
+build_icl() { build_intel icl "$@"; }
+build_icx() { build_intel icx "$@"; }
 
 build_gcc()
 {
