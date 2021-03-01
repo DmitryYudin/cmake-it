@@ -150,6 +150,8 @@ entrypoint()
 
     $rebuild && rm -rf "$dirOut"
 
+    trap 'rm -f __run_cmake__.bat' EXIT
+
     case $target in *-msvc) script="$script $msvc_open $msvc_build";; esac
     $script $bits "$dirOut" $BUILD_FLAGS
 
@@ -232,7 +234,6 @@ build_cl()
         @call cmake --build $dirOut ${APP:+ --target $APP} || exit /B 1
 EOT
     ./__run_cmake__.bat
-    rm __run_cmake__.bat
 }
 
 build_intel()
@@ -258,7 +259,6 @@ build_intel()
         @call cmake --build $dirOut ${APP:+ --target $APP} || exit /B 1
 EOT
     ./__run_cmake__.bat
-    rm __run_cmake__.bat
 }
 build_icl() { build_intel icl "$@"; }
 build_icx() { build_intel icx "$@"; }
