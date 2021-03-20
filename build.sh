@@ -235,12 +235,13 @@ build_cl()
         @call cmake -G Ninja -B $dirOut -S "$DIR_CMAKELIST" ^
             -DCMAKE_BUILD_TYPE=release ^
             -DCMAKE_C_COMPILER=cl ^
-            -DCMAKE_CXX_COMPILER=cl || ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            %* || ^
         exit /B 1
 
         @call cmake --build $dirOut ${APP:+ --target $APP} || exit /B 1
 EOT
-    ./__run_cmake__.bat
+    ./__run_cmake__.bat "$@"
 }
 
 build_intel()
@@ -260,12 +261,13 @@ build_intel()
         @call cmake -G Ninja -B $dirOut -S "$DIR_CMAKELIST" ^
             -DCMAKE_BUILD_TYPE=release ^
             -DCMAKE_C_COMPILER=$compiler ^
-            -DCMAKE_CXX_COMPILER=$compiler || ^
+            -DCMAKE_CXX_COMPILER=$compiler ^
+            %* || ^
         exit /B 1
 
         @call cmake --build $dirOut ${APP:+ --target $APP} || exit /B 1
 EOT
-    ./__run_cmake__.bat
+    ./__run_cmake__.bat "$@"
 }
 build_icl() { build_intel icl "$@"; }
 build_icx() { build_intel icx "$@"; }
