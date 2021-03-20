@@ -145,7 +145,13 @@ entrypoint()
     if [[ -f "$prms_file" ]]; then
         . "$prms_file"
     else
-        error_exit "'$prms_file' not found"
+        case ${OS:-} in 
+            _NT*) error_exit "'$prms_file' not found";;
+            *)  echo "warn: '$prms_file' not found, using system-wide compilers"
+                DIR_GCC=/usr/local
+                DIR_LLVM=/usr/local
+            ;;
+        esac
     fi
 
     $rebuild && rm -rf "$dirOut"
