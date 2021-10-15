@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright © 2020 Dmitry Yudin. All rights reserved.
+# Copyright Â© 2020 Dmitry Yudin. All rights reserved.
 # Licensed under the Apache License, Version 2.0
 #
 set -eu
@@ -318,6 +318,7 @@ build_arm_linux_gcc()
 {
     local bits=$1; shift
     local dirOut=$1; shift
+    local dirGCC= dirSysroot=
 
     if [[ $bits == 32 ]]; then
         update_path DIR_GCC_ARM32_LINUX bin
@@ -337,6 +338,13 @@ build_arm_linux_gcc()
         cflags=
     fi
 
+    local dirSysroot=$dirGCC/$prefix/libc
+    if [[ $bits == 32 && -n "${DIR_GCC_ARM32_LINUX_SYSROOT:-}" ]]; then
+        dirSysroot=$DIR_GCC_ARM32_LINUX_SYSROOT
+    elif [[ $bits == 64 && -n "${DIR_GCC_ARM64_LINUX_SYSROOT:-}" ]]; then
+        dirSysroot=$DIR_GCC_ARM64_LINUX_SYSROOT
+    fi
+
     cmake -G Ninja -B $dirOut -S "$DIR_CMAKELIST" \
         -DCMAKE_BUILD_TYPE=release \
         -DCMAKE_SYSTEM_NAME=Linux \
@@ -346,7 +354,7 @@ build_arm_linux_gcc()
         -DCMAKE_CXX_COMPILER=$prefix-g++ \
         -DCMAKE_C_FLAGS="$cflags" \
         -DCMAKE_CXX_FLAGS="$cflags" \
-        -DCMAKE_SYSROOT="$dirGCC/$prefix/libc" \
+        -DCMAKE_SYSROOT="$dirSysroot" \
         "$@"
 
     cmake --build "$dirOut" ${APP:+ --target $APP}
